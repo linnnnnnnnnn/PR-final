@@ -7,12 +7,15 @@ View more on my tutorial page: https://morvanzhou.github.io/tutorials/
 
 Using:
 Tensorflow: 1.0
-gym: 0.8.0
+gym: 0.7.3
 """
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+
+np.random.seed(1)
+tf.set_random_seed(1)
 
 
 # Deep Q Network off-policy
@@ -198,14 +201,11 @@ class DeepQNetwork:
         self.learn_step_counter += 1
 
     def plot_cost(self):
-        print('done')
-        # import matplotlib
-        # matplotlib.use('TkAgg')
-        # import matplotlib.pyplot as plt
-        # plt.plot(np.arange(len(self.cost_his)), self.cost_his)
-        # plt.ylabel('Cost')
-        # plt.xlabel('training steps')
-        # plt.show()
+        import matplotlib.pyplot as plt
+        plt.plot(np.arange(len(self.cost_his)), self.cost_his)
+        plt.ylabel('Cost')
+        plt.xlabel('training steps')
+        plt.show()
 
 
 
