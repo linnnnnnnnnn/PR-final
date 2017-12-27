@@ -3,7 +3,6 @@ from RL_brain import DeepQNetwork
 from DQN_modified import DeepQNetwork as MDeepQNetwork
 
 
-
 def run_maze():
     step = 0
     for episode in range(300):

@@ -2,3 +2,8 @@ logs
 .idea
 models
 *.pyc
+
+# model
+*.pickle
+
+.ipynb_checkpoints
