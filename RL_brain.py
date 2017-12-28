@@ -93,6 +93,19 @@ class DeepQNetwork:
         with tf.variable_scope('train'):
             self._train_op = tf.train.RMSPropOptimizer(self.lr).minimize(self.loss)
 
+        with tf.variable_scope('s_loss'):
+            self.y_ = tf.placeholder(tf.float32, [None, self.n_actions])
+            predict_score = tf.nn.softmax(self.q_eval)
+            self.s_loss = tf.reduce_mean(-tf.reduce_sum(self.y_ * tf.log(predict_score), reduction_indices=[1]))
+
+        with tf.variable_scope('s_train'):
+            self.train_step = tf.train.GradientDescentOptimizer(0.5).minimize(self.s_loss)
+
+        with tf.variable_scope('s_eval'):
+            correct_prediction = tf.equal(tf.argmax(predict_score, 1), tf.argmax(self.y_, 1))
+            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+
         # ------------------ build target_net ------------------
         self.s_ = tf.placeholder(tf.float32, [None, self.n_features], name='s_')    # input
         with tf.variable_scope('target_net'):
@@ -110,6 +123,15 @@ class DeepQNetwork:
                 w2 = tf.get_variable('w2', [n_l1, self.n_actions], initializer=w_initializer, collections=c_names)
                 b2 = tf.get_variable('b2', [1, self.n_actions], initializer=b_initializer, collections=c_names)
                 self.q_next = tf.matmul(l1, w2) + b2
+
+    def mimic_learn(self, X, Y):
+        for step in range(1000):
+            [l, _] = self.sess.run([self.s_loss, self.train_step], feed_dict={self.s: X, self.y_: Y})
+            print('loss is {}'.format(l))
+
+        accuracy = self.sess.run([self.accuracy], feed_dict={self.s: X, self.y_: Y})
+        print(accuracy)
+        self.sess.run(self.replace_target_op)
 
     def store_transition(self, s, a, r, s_):
         if not hasattr(self, 'memory_counter'):

@@ -6,13 +6,18 @@ from maze_env import Maze
 import numpy as np
 from pynput.keyboard import Key, Listener
 import pickle
+import os
 
-save_path = 'mimic.pickle'
+# create 'static' folder
+if not os.path.isdir(os.path.join(os.path.dirname(__file__), 'models')):
+    os.makedirs(os.path.join(os.path.dirname(__file__), 'models'))
+
+save_path = 'models/mimic.pickle'
 
 observations = []
 
 observation = None
-max_episode = 2
+max_episode = 10
 episode = 0
 
 
@@ -52,7 +57,6 @@ def on_press(key):
                 print('save successful!')
                 with open(save_path, 'rb') as f:
                     verify = pickle.load(f)
-
                 # to list to avoid some bug of numpy in child thread
                 if history.tolist() == verify.tolist():
                     print('verify success')
@@ -61,7 +65,6 @@ def on_press(key):
                 env.destroy()
             else:
                 observation = env.reset()
-
 
 
 def on_release(key):
@@ -86,8 +89,9 @@ if __name__ == "__main__":
     env = Maze()
 
     env.after(100, get_action)
-    env.mainloop()
     print('env started!')
+    env.mainloop()
+    print('env ended!')
 
     # Collect events until released
 

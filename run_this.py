@@ -1,6 +1,6 @@
 from maze_env import Maze
-from RL_brain import DeepQNetwork
-from DQN_modified import DeepQNetwork as MDeepQNetwork
+from RL_brain_copy import DeepQNetwork
+# from DQN_modified import DeepQNetwork as MDeepQNetwork
 
 
 def run_maze():
@@ -40,7 +40,7 @@ def run_maze():
 if __name__ == "__main__":
     # maze game
     env = Maze()
-    RL = MDeepQNetwork(env.n_actions, env.n_features,
+    RL = DeepQNetwork(env.n_actions, env.n_features,
                       learning_rate=0.01,
                       reward_decay=0.9,
                       e_greedy=0.9,
