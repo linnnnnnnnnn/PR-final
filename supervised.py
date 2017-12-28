@@ -72,11 +72,11 @@ if __name__ == "__main__":
     Y = np.zeros((Y_.shape[0], env.n_actions))
 
 
-    Y[np.arange(Y_.shape[0]), Y_] = 1
+    # Y[np.arange(Y_.shape[0]), Y_] = 1
     Y += 1. / (env.n_actions + 1)
     Y[np.arange(Y_.shape[0]), Y_] += 1. / (env.n_actions + 1)
 
-    # RL.mimic_learn(X, Y)
+    RL.mimic_learn(X, Y)
 
     env.after(100, run_maze)
     env.mainloop()
