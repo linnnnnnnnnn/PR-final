@@ -15,7 +15,7 @@ def run_maze():
     rewards = []
     total_reward = 0
     step = 0
-    for episode in range(5):
+    for episode in range(300):
         # initial observation
         observation = env.reset()
 
@@ -50,7 +50,7 @@ def run_maze():
     rewards = np.array(rewards, dtype=np.float32)
     steps = np.arange(rewards.shape[0]) + 1
     rewards = np.cumsum(rewards)
-    r = rewards * 1. / step
+    r = rewards * 1. / steps
     to_plot_steps.append(steps)
     to_plot_rewards.append(r)
     env.destroy()
@@ -106,10 +106,17 @@ if __name__ == "__main__":
     env.after(100, run_maze)
     env.mainloop()
 
-    for t, r in zip(to_plot_steps, to_plot_rewards):
-        plt.plot(t, r)
+    for i, (t, r) in enumerate(zip(to_plot_steps, to_plot_rewards)):
+        if i == 0:
+            label = 'with supervised'
+        else:
+            label = 'without supervised'
+        plt.plot(t, r, label=label)
         print('total step {}, reward {}'.format(t.shape[0], r[-1]))
-
+    plt.xlabel('step')
+    plt.ylabel('average reward')
+    plt.legend()
+    plt.grid()
     plt.show()
 
 
