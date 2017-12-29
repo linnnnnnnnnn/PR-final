@@ -4,12 +4,18 @@ from DQN_modified import DeepQNetwork as MDeepQNetwork
 import pickle
 import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
+
+
+to_plot_steps = []
+to_plot_rewards = []
 
 
 def run_maze():
+    rewards = []
     total_reward = 0
     step = 0
-    for episode in range(300):
+    for episode in range(5):
         # initial observation
         observation = env.reset()
 
@@ -23,7 +29,7 @@ def run_maze():
             # RL take action and get next observation and reward
             observation_, reward, done = env.step(action)
 
-            total_reward += reward
+            rewards.append(reward)
 
             RL.store_transition(observation, action, reward, observation_)
 
@@ -41,7 +47,12 @@ def run_maze():
 
     # end of game
     print('game over')
-    print('total step {}, total reward {}, average reward {}'.format(step, total_reward, total_reward * 1. / step))
+    rewards = np.array(rewards, dtype=np.float32)
+    steps = np.arange(rewards.shape[0]) + 1
+    rewards = np.cumsum(rewards)
+    r = rewards * 1. / step
+    to_plot_steps.append(steps)
+    to_plot_rewards.append(r)
     env.destroy()
 
 
@@ -51,8 +62,7 @@ if __name__ == "__main__":
     # maze game
     env = Maze()
 
-    sess = tf.Session()
-    with tf.variable_scope('Double_DQN'):
+    with tf.variable_scope('supervised'):
         RL = DeepQNetwork(env.n_actions, env.n_features,
                           learning_rate=0.01,
                           reward_decay=0.9,
@@ -61,8 +71,6 @@ if __name__ == "__main__":
                           memory_size=2000,
                           # output_graph=True
                           )
-
-    sess.run(tf.global_variables_initializer())
 
     with open(save_path, 'rb') as f:
         train_data = pickle.load(f)
@@ -80,4 +88,30 @@ if __name__ == "__main__":
 
     env.after(100, run_maze)
     env.mainloop()
+
+    print('second start')
+
+    env = Maze()
+
+    with tf.variable_scope('nature'):
+        RL = DeepQNetwork(env.n_actions, env.n_features,
+                          learning_rate=0.01,
+                          reward_decay=0.9,
+                          e_greedy=0.9,
+                          replace_target_iter=200,
+                          memory_size=2000,
+                          # output_graph=True
+                          )
+
+    env.after(100, run_maze)
+    env.mainloop()
+
+    for t, r in zip(to_plot_steps, to_plot_rewards):
+        plt.plot(t, r)
+        print('total step {}, reward {}'.format(t.shape[0], r[-1]))
+
+    plt.show()
+
+
+
 
