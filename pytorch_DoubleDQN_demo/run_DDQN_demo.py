@@ -13,8 +13,12 @@ from maze_env import Maze
 def train(qn):
     step = 0
     steps = []
+    rewards = []
     episodes = []
-    for i_episode in range(20):
+    to_plot_steps = []
+    to_plot_rewards = []
+
+    for i_episode in range(300):
         s = env.reset()
         while True:
             # env.render()
@@ -26,8 +30,9 @@ def train(qn):
             if qn.memory_ready():
                 qn.learn()
 
+            rewards.append(r)
             if done:
-                print('episode ', i_episode, ' finished')
+                # print('episode ', i_episode, ' finished')
                 steps.append(step)
                 episodes.append(i_episode)
                 break
@@ -35,10 +40,17 @@ def train(qn):
             step += 1
             s = s_
     # env.render(close=True)
-    return np.vstack((episodes, steps))
+    rewards = np.array(rewards, dtype=np.float32)
+    steps = np.arange(rewards.shape[0]) + 1
+    rewards = np.cumsum(rewards)
+    r = rewards * 1. / steps
+    to_plot_steps.append(steps)
+    to_plot_rewards.append(r)
+    print('finished')
+    return np.vstack((to_plot_steps, to_plot_rewards))
 
 def test():
-    his_ddqn = train(DQN_brain(env.n_actions, env.n_features))
+    his_ddqn = train(DDQN_brain(env.n_actions, env.n_features))
 
     ddqn_test = DDQN_brain(env.n_actions, env.n_features)
     memory = pickle.load(open("../models/mimic.pickle", "r"))
@@ -48,8 +60,8 @@ def test():
 
 
     # compare based on first success
-    plt.plot(his_ddqn[0, :], his_ddqn[1, :] - his_ddqn[1, 0], c='b', label='DQN')
-    plt.plot(his_ddqn_test[0, :], his_ddqn_test[1, :] - his_ddqn_test[1, 0], c='r', label='DDQN')
+    plt.plot(his_ddqn[0, :], his_ddqn[1, :] - his_ddqn[1, 0], c='b', label='old')
+    plt.plot(his_ddqn_test[0, :], his_ddqn_test[1, :] - his_ddqn_test[1, 0], c='r', label='new')
     plt.legend(loc='best')
     plt.ylabel('total training time')
     plt.xlabel('episode')
