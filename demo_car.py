@@ -18,7 +18,7 @@ save_path = 'models/mimic_car.pickle'
 observations = []
 
 observation = None
-max_episode = 5
+max_episode = 15
 episode = 0
 
 current_action = 1

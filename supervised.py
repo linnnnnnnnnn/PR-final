@@ -1,5 +1,6 @@
 from maze_env import Maze
 from RL_brain import DeepQNetwork
+from RL_brain import DeepQNetworkWithPresetReplay
 from DQN_modified import DeepQNetwork as MDeepQNetwork
 import pickle
 import numpy as np
@@ -10,7 +11,7 @@ import matplotlib.pyplot as plt
 to_plot_steps = []
 to_plot_rewards = []
 
-max_episode = 2000
+max_episode = 100
 
 
 def run_maze():
@@ -63,41 +64,108 @@ save_path = 'models/mimic.pickle'
 
 if __name__ == "__main__":
     # maze game
-    env = Maze()
-
-    with tf.variable_scope('supervised'):
-        RL = DeepQNetwork(env.n_actions, env.n_features,
-                          learning_rate=0.01,
-                          reward_decay=0.9,
-                          e_greedy=0.9,
-                          replace_target_iter=200,
-                          memory_size=2000,
-                          # output_graph=True
-                          )
-
-    with open(save_path, 'rb') as f:
-        train_data = pickle.load(f)
-
-    X = train_data[:, :env.n_features]
-    Y_ = train_data[:, env.n_features].astype(np.uint32)
-    Y = np.zeros((Y_.shape[0], env.n_actions))
-
-
+    # env = Maze()
+    #
+    # with tf.variable_scope('supervised'):
+    #     RL = DeepQNetwork(env.n_actions, env.n_features,
+    #                       learning_rate=0.01,
+    #                       reward_decay=0.9,
+    #                       e_greedy=0.9,
+    #                       replace_target_iter=200,
+    #                       memory_size=2000,
+    #                       # output_graph=True
+    #                       )
+    #
+    # with open(save_path, 'rb') as f:
+    #     train_data = pickle.load(f)
+    #
+    # X = train_data[:, :env.n_features]
+    # Y_ = train_data[:, env.n_features].astype(np.uint32)
+    # Y = np.zeros((Y_.shape[0], env.n_actions))
+    #
+    #
+    # # Y[np.arange(Y_.shape[0]), Y_] = 1
+    # Y += 1. / (env.n_actions + 1)
+    # Y[np.arange(Y_.shape[0]), Y_] += 1. / (env.n_actions + 1)
+    #
+    # RL.mimic_learn(X, Y)
+    #
+    # env.after(100, run_maze)
+    # env.mainloop()
+    #
+    # print('second start')
+    #
+    # env = Maze()
+    #
+    # with tf.variable_scope('nature'):
+    #     RL = DeepQNetwork(env.n_actions, env.n_features,
+    #                       learning_rate=0.01,
+    #                       reward_decay=0.9,
+    #                       e_greedy=0.9,
+    #                       replace_target_iter=200,
+    #                       memory_size=2000,
+    #                       # output_graph=True
+    #                       )
+    #
+    # env.after(100, run_maze)
+    # env.mainloop()
+    #
+    # print('third start')
+    #
+    # env = Maze()
+    #
+    # with tf.variable_scope('strong-supervised'):
+    #     RL = DeepQNetwork(env.n_actions, env.n_features,
+    #                       learning_rate=0.01,
+    #                       reward_decay=0.9,
+    #                       e_greedy=0.9,
+    #                       replace_target_iter=200,
+    #                       memory_size=2000,
+    #                       # output_graph=True
+    #                       )
+    #
+    # with open(save_path, 'rb') as f:
+    #     train_data = pickle.load(f)
+    #
+    # X = train_data[:, :env.n_features]
+    # Y_ = train_data[:, env.n_features].astype(np.uint32)
+    # Y = np.zeros((Y_.shape[0], env.n_actions))
+    #
     # Y[np.arange(Y_.shape[0]), Y_] = 1
-    Y += 1. / (env.n_actions + 1)
-    Y[np.arange(Y_.shape[0]), Y_] += 1. / (env.n_actions + 1)
+    #
+    # RL.mimic_learn(X, Y)
+    #
+    # env.after(100, run_maze)
+    # env.mainloop()
+    #
+    # print('forth start')
+    #
+    # env = Maze()
+    #
+    # with tf.variable_scope('init-memory'):
+    #     RL = DeepQNetwork(env.n_actions, env.n_features,
+    #                       learning_rate=0.01,
+    #                       reward_decay=0.9,
+    #                       e_greedy=0.9,
+    #                       replace_target_iter=200,
+    #                       memory_size=2000,
+    #                       # output_graph=True
+    #                       )
+    # with open(save_path, 'rb') as f:
+    #     train_data = pickle.load(f)
+    #
+    # for memory in train_data:
+    #     RL.store_transition(memory[:env.n_features], memory[env.n_features], memory[env.n_features+1], memory[-env.n_features:])
+    #
+    # env.after(100, run_maze)
+    # env.mainloop()
 
-    RL.mimic_learn(X, Y)
-
-    env.after(100, run_maze)
-    env.mainloop()
-
-    print('second start')
+    print('fifth start')
 
     env = Maze()
 
-    with tf.variable_scope('nature'):
-        RL = DeepQNetwork(env.n_actions, env.n_features,
+    with tf.variable_scope('initial-memory-proportional-replay'):
+        RL = DeepQNetworkWithPresetReplay(env.n_actions, env.n_features,
                           learning_rate=0.01,
                           reward_decay=0.9,
                           e_greedy=0.9,
@@ -105,37 +173,15 @@ if __name__ == "__main__":
                           memory_size=2000,
                           # output_graph=True
                           )
-
-    env.after(100, run_maze)
-    env.mainloop()
-
-    print('third start')
-
-    env = Maze()
-
-    with tf.variable_scope('strong-supervised'):
-        RL = DeepQNetwork(env.n_actions, env.n_features,
-                          learning_rate=0.01,
-                          reward_decay=0.9,
-                          e_greedy=0.9,
-                          replace_target_iter=200,
-                          memory_size=2000,
-                          # output_graph=True
-                          )
-
     with open(save_path, 'rb') as f:
         train_data = pickle.load(f)
 
-    X = train_data[:, :env.n_features]
-    Y_ = train_data[:, env.n_features].astype(np.uint32)
-    Y = np.zeros((Y_.shape[0], env.n_actions))
-
-    Y[np.arange(Y_.shape[0]), Y_] = 1
-
-    RL.mimic_learn(X, Y)
-
+    RL.preset_memory(train_data)
     env.after(100, run_maze)
     env.mainloop()
+
+
+
 
     for i, (t, r) in enumerate(zip(to_plot_steps, to_plot_rewards)):
         if i == 0:

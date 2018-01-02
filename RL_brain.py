@@ -19,7 +19,7 @@ tf.set_random_seed(1)
 
 
 # Deep Q Network off-policy
-class DeepQNetwork:
+class DeepQNetwork(object):
     def __init__(
             self,
             n_actions,
@@ -230,4 +230,79 @@ class DeepQNetwork:
         plt.show()
 
 
+class DeepQNetworkWithPresetReplay(DeepQNetwork):
+    def __init__(
+            self,
+            n_actions,
+            n_features,
+            learning_rate=0.01,
+            reward_decay=0.9,
+            e_greedy=0.9,
+            replace_target_iter=300,
+            memory_size=500,
+            batch_size=32,
+            e_greedy_increment=None,
+            output_graph=False,
+    ):
+        super(DeepQNetworkWithPresetReplay, self).__init__(n_actions,
+            n_features,
+            learning_rate,
+            reward_decay,
+            e_greedy,
+            replace_target_iter,
+            memory_size,
+            batch_size,
+            e_greedy_increment,
+            output_graph)
 
+    def preset_memory(self, preset):
+        self.preset = np.zeros((len(preset), self.n_features * 2 + 2))
+        i = 0
+        for memory in preset:
+            transition = np.hstack((memory[:self.n_features], memory[self.n_features], memory[self.n_features + 1], memory[-self.n_features:]))
+            self.preset[i] = transition
+            i += 1
+
+    def learn(self):
+        # check to replace target parameters
+        if self.learn_step_counter % self.replace_target_iter == 0:
+            self.sess.run(self.replace_target_op)
+            print('\ntarget_params_replaced\n')
+
+        # sample batch memory from all memory
+        preset_size = int(self.batch_size / np.sqrt(self.memory_counter))
+        m_size = self.batch_size - preset_size
+        batch_memory = self.preset[np.random.choice(len(self.preset), size=preset_size), :]
+
+        if self.memory_counter > self.memory_size:
+            sample_index = np.random.choice(self.memory_size, size=m_size)
+        else:
+            sample_index = np.random.choice(self.memory_counter, size=m_size)
+        batch_memory = np.vstack((batch_memory, self.memory[sample_index, :]))
+
+
+        q_next, q_eval = self.sess.run(
+            [self.q_next, self.q_eval],
+            feed_dict={
+                self.s_: batch_memory[:, -self.n_features:],  # fixed params
+                self.s: batch_memory[:, :self.n_features],  # newest params
+            })
+
+        # change q_target w.r.t q_eval's action
+        q_target = q_eval.copy()
+
+        batch_index = np.arange(self.batch_size, dtype=np.int32)
+        eval_act_index = batch_memory[:, self.n_features].astype(int)
+        reward = batch_memory[:, self.n_features + 1]
+
+        q_target[batch_index, eval_act_index] = reward + self.gamma * np.max(q_next, axis=1)
+
+        # train eval network
+        _, self.cost = self.sess.run([self._train_op, self.loss],
+                                     feed_dict={self.s: batch_memory[:, :self.n_features],
+                                                self.q_target: q_target})
+        self.cost_his.append(self.cost)
+
+        # increasing epsilon
+        self.epsilon = self.epsilon + self.epsilon_increment if self.epsilon < self.epsilon_max else self.epsilon_max
+        self.learn_step_counter += 1

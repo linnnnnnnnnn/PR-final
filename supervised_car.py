@@ -96,6 +96,7 @@ if flag == 'train':
 
         train()
 
+
     with tf.variable_scope('strong-supervised'):
         RL = DeepQNetwork(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
                           replace_target_iter=300, memory_size=3000,
@@ -114,6 +115,19 @@ if flag == 'train':
 
         train()
 
+    with tf.variable_scope('memory-preset'):
+        RL = DeepQNetwork(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
+                          replace_target_iter=300, memory_size=3000,
+                          e_greedy_increment=0.0002, )
+        with open(save_path, 'rb') as f:
+            train_data = pickle.load(f)
+
+        for memory in train_data:
+            RL.store_transition(memory[:n_feature], memory[n_feature], memory[n_feature + 1],
+                                memory[-n_feature:])
+
+        train()
+
     with open(tmp_file_path, 'wb') as f:
         pickle.dump(to_plot_train_steps, f)
 
@@ -129,8 +143,10 @@ else:
             label = 'with soft supervised'
         elif i == 1:
             label = 'without supervised'
-        else:
+        elif i == 2:
             label = 'with strong supervised'
+        else:
+            label = 'with preset memory'
         e = np.arange(max_episode)
         plt.plot(e, t, label=label)
     plt.xlabel('episode')
