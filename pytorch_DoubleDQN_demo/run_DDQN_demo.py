@@ -1,5 +1,6 @@
 from Double_DQN import DDQN_brain
 from Double_DQN import DQN_brain
+from Double_DQN import DDQN_brain_with_experience
 
 import gym
 import numpy as np
@@ -18,7 +19,7 @@ def train(qn):
     to_plot_steps = []
     to_plot_rewards = []
 
-    for i_episode in range(300):
+    for i_episode in range(500):
         s = env.reset()
         while True:
             # env.render()
@@ -58,13 +59,18 @@ def test():
     ddqn_test.init_transition(memory)
     his_ddqn_test = train(ddqn_test)
 
+    ddqn_test2 = DDQN_brain_with_experience(env.n_actions, env.n_features)
+    ddqn_test2.init_transition(memory)
+    his_ddqn_test2 = train(ddqn_test2)
 
-    # compare based on first success
-    plt.plot(his_ddqn[0, :], his_ddqn[1, :] - his_ddqn[1, 0], c='b', label='old')
-    plt.plot(his_ddqn_test[0, :], his_ddqn_test[1, :] - his_ddqn_test[1, 0], c='r', label='new')
+    plt.plot(his_ddqn[0, :], his_ddqn[1, :], c='b', label='old')
+    plt.plot(his_ddqn_test[0, :], his_ddqn_test[1, :], c='r', label='ddqn_with_initial_experience')
+    plt.plot(his_ddqn_test2[0, :], his_ddqn_test2[1, :], c='g', label='ddqn_with_proportional_experience')
+
+
     plt.legend(loc='best')
-    plt.ylabel('total training time')
-    plt.xlabel('episode')
+    plt.ylabel('average rewards')
+    plt.xlabel('steps')
     plt.grid()
     plt.show()
 
