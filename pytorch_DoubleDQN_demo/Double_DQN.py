@@ -64,7 +64,7 @@ class DQN_brain(object):
         self.memory_position = (self.memory_position + 1) % self.memory_size
 
     def learn(self, batch_size=32):
-        samples = random.sample(self.memory, batch_size)
+        samples = self.sample_core(batch_size)
         samples_s = Variable(torch.FloatTensor([sample.state for sample in samples]))
         samples_a = Variable(torch.LongTensor([sample.action for sample in samples]))
         samples_r = Variable(torch.FloatTensor([sample.reward for sample in samples]))
@@ -82,11 +82,13 @@ class DQN_brain(object):
         if self.learn_step_counter % self.target_replace_iter == 0:
             self.Q_target.load_state_dict(self.Q_eval.state_dict())
 
+    def sample_core(self, batch_size):
+        return random.sample(self.memory, batch_size)
+
     def brain_core(self, samples_s, samples_a, samples_r, samples_s_):
         esti_value = self.Q_eval(samples_s).gather(1, samples_a.view(-1, 1))
         next_value = self.Q_target(samples_s_).detach()
         real_value = samples_r + self.gama * next_value.max(1)[0]
-
         return esti_value, real_value
 
     def memory_ready(self):
@@ -115,4 +117,36 @@ class DDQN_brain(DQN_brain):
         else:
             self.memory = memory[-1*self.memory_size:]
         self.memory_size = len(memory) % self.memory_size
+
+class DDQN_brain_with_experience(DDQN_brain):
+    def __init__(self, action_n, state_n, memory_size=2000, lr=0.01, gama=0.9, epsilon=0.9, target_iteration=100):
+        super(DDQN_brain_with_experience, self).__init__(action_n, state_n, memory_size, lr, gama, epsilon, target_iteration)
+        self.experience = []
+        self.experience_proportion = 1
+        self.experience_learnt = False
+
+    def init_transition(self, memory):
+        self.experience = memory
+
+    def sample_core(self, batch_size):
+        # p1 = int(batch_size / np.sqrt(self.learn_step_counter + 1))
+        # p1 = int(batch_size / np.sqrt(self.learn_step_counter / self.target_replace_iter + 1))
+        # p1 = int(batch_size / (np.sqrt(self.learn_step_counter / self.target_replace_iter) + 1))
+        # p1 = int(batch_size / (self.learn_step_counter / self.target_replace_iter + 1))
+
+        if self.learn_step_counter / self.target_replace_iter < 10:
+            p1 = batch_size / 5
+        else:
+            p1 = 0
+
+        # if not self.experience_learnt:
+        #     p1 = batch_size / 3
+        #     self.experience_learnt = True
+        # else:
+        #     p1 = 0
+
+        if p1 > len(self.experience):
+            p1 = len(self.experience)
+        p2 = batch_size - p1
+        return random.sample(self.experience, p1) + random.sample(self.memory, p2)
 
