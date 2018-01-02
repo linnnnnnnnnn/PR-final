@@ -134,16 +134,16 @@ class DDQN_brain_with_experience(DDQN_brain):
         # p1 = int(batch_size / (np.sqrt(self.learn_step_counter / self.target_replace_iter) + 1))
         # p1 = int(batch_size / (self.learn_step_counter / self.target_replace_iter + 1))
 
-        # if self.learn_step_counter / self.target_replace_iter < 2:
-        #     p1 = batch_size / 3
-        # else:
-        #     p1 = 0
-
-        if not self.experience_learnt:
-            p1 = batch_size / 3
-            self.experience_learnt = True
+        if self.learn_step_counter / self.target_replace_iter < 10:
+            p1 = batch_size / 5
         else:
             p1 = 0
+
+        # if not self.experience_learnt:
+        #     p1 = batch_size / 3
+        #     self.experience_learnt = True
+        # else:
+        #     p1 = 0
 
         if p1 > len(self.experience):
             p1 = len(self.experience)

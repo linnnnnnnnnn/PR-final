@@ -18,7 +18,7 @@ def train(qn):
     to_plot_steps = []
     to_plot_rewards = []
 
-    for i_episode in range(500):
+    for i_episode in range(300):
         s = env.reset()
         while True:
             # env.render()

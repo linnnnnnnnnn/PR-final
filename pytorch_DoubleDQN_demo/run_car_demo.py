@@ -22,13 +22,13 @@ def train(qn):
     to_plot_steps = []
     to_plot_rewards = []
 
-    for i_episode in range(300):
+    for i_episode in range(200):
         s = env.reset()
         while True:
             # env.render()
             a = qn.choose_action(s)
             s_, r, done, info = env.step(a)
-            if done: r = 10
+            # if done: r = 10
             qn.store_transition(s, a, r, s_)
 
             rewards.append(r)
@@ -36,7 +36,7 @@ def train(qn):
                 qn.learn()
 
             if done:
-                # print('episode ', i_episode, ' finished')
+                print('episode ', i_episode, ' finished')
                 steps.append(step)
                 episodes.append(i_episode)
                 break
@@ -63,14 +63,14 @@ memory = [Transition(memory[i, 0:2], int(memory[i, 2].astype(np.int32)), memory[
 ddqn_test.init_transition(memory)
 his_ddqn_test = train(ddqn_test)
 
-ddqn_test2 = DDQN_brain_with_experience(N_ACTIONS, N_STATES)
-ddqn_test2.init_transition(memory)
-his_ddqn_test2 = train(ddqn_test2)
+# ddqn_test2 = DDQN_brain_with_experience(N_ACTIONS, N_STATES)
+# ddqn_test2.init_transition(memory)
+# his_ddqn_test2 = train(ddqn_test2)
 
 # plot
 plt.plot(his_ddqn[0, :], his_ddqn[1, :], c='b', label='old')
 plt.plot(his_ddqn_test[0, :], his_ddqn_test[1, :], c='r', label='ddqn_with_initial_experience')
-plt.plot(his_ddqn_test2[0, :], his_ddqn_test2[1, :], c='g', label='ddqn_with_proportional_experience')
+# plt.plot(his_ddqn_test2[0, :], his_ddqn_test2[1, :], c='g', label='ddqn_with_proportional_experience')
 
 plt.legend(loc='best')
 plt.ylabel('average rewards')
