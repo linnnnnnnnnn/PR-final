@@ -2,7 +2,6 @@ from Double_DQN import DDQN_brain
 from Double_DQN import DQN_brain
 from Double_DQN import DDQN_brain_with_experience
 
-import gym
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
@@ -25,7 +24,7 @@ def train(qn):
             # env.render()
             a = qn.choose_action(s)
             s_, r, done = env.step(a)
-            if done: r = 10
+
             qn.store_transition(s, a, r, s_)
 
             if qn.memory_ready():
