@@ -10,8 +10,10 @@ import matplotlib.pyplot as plt
 
 to_plot_steps = []
 to_plot_rewards = []
+labels = []
 
 max_episode = 100
+
 
 
 def run_maze():
@@ -90,6 +92,8 @@ if __name__ == "__main__":
     #
     # RL.mimic_learn(X, Y)
     #
+    # labels.append('soft-supervised')
+    #
     # env.after(100, run_maze)
     # env.mainloop()
     #
@@ -106,6 +110,8 @@ if __name__ == "__main__":
     #                       memory_size=2000,
     #                       # output_graph=True
     #                       )
+    #
+    # labels.append('nature')
     #
     # env.after(100, run_maze)
     # env.mainloop()
@@ -135,6 +141,7 @@ if __name__ == "__main__":
     #
     # RL.mimic_learn(X, Y)
     #
+    # labels.append('strong-supervised')
     # env.after(100, run_maze)
     # env.mainloop()
     #
@@ -157,13 +164,14 @@ if __name__ == "__main__":
     # for memory in train_data:
     #     RL.store_transition(memory[:env.n_features], memory[env.n_features], memory[env.n_features+1], memory[-env.n_features:])
     #
+    # labels.append('preset-memory')
     # env.after(100, run_maze)
     # env.mainloop()
 
+
+
     print('fifth start')
-
     env = Maze()
-
     with tf.variable_scope('initial-memory-proportional-replay'):
         RL = DeepQNetworkWithPresetReplay(env.n_actions, env.n_features,
                           learning_rate=0.01,
@@ -175,22 +183,14 @@ if __name__ == "__main__":
                           )
     with open(save_path, 'rb') as f:
         train_data = pickle.load(f)
-
     RL.preset_memory(train_data)
+    labels.append('initial-memory-proportional-replay')
     env.after(100, run_maze)
     env.mainloop()
 
 
-
-
     for i, (t, r) in enumerate(zip(to_plot_steps, to_plot_rewards)):
-        if i == 0:
-            label = 'with soft supervised'
-        elif i == 1:
-            label = 'without supervised'
-        else:
-            label = 'with strong supervised'
-        plt.plot(t, r, label=label)
+        plt.plot(t, r, label=labels[i])
         print('total step {}, reward {}'.format(t.shape[0], r[-1]))
     plt.xlabel('step')
     plt.ylabel('average reward')
