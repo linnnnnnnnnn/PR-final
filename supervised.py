@@ -12,7 +12,7 @@ to_plot_steps = []
 to_plot_rewards = []
 labels = []
 
-max_episode = 100
+max_episode = 300
 
 
 
@@ -97,24 +97,24 @@ if __name__ == "__main__":
     # env.after(100, run_maze)
     # env.mainloop()
     #
-    # print('second start')
-    #
-    # env = Maze()
-    #
-    # with tf.variable_scope('nature'):
-    #     RL = DeepQNetwork(env.n_actions, env.n_features,
-    #                       learning_rate=0.01,
-    #                       reward_decay=0.9,
-    #                       e_greedy=0.9,
-    #                       replace_target_iter=200,
-    #                       memory_size=2000,
-    #                       # output_graph=True
-    #                       )
-    #
-    # labels.append('nature')
-    #
-    # env.after(100, run_maze)
-    # env.mainloop()
+    print('second start')
+
+    env = Maze()
+
+    with tf.variable_scope('nature'):
+        RL = DeepQNetwork(env.n_actions, env.n_features,
+                          learning_rate=0.01,
+                          reward_decay=0.9,
+                          e_greedy=0.9,
+                          replace_target_iter=200,
+                          memory_size=2000,
+                          # output_graph=True
+                          )
+
+    labels.append('nature')
+
+    env.after(100, run_maze)
+    env.mainloop()
     #
     # print('third start')
     #
@@ -144,29 +144,29 @@ if __name__ == "__main__":
     # labels.append('strong-supervised')
     # env.after(100, run_maze)
     # env.mainloop()
-    #
-    # print('forth start')
-    #
-    # env = Maze()
-    #
-    # with tf.variable_scope('init-memory'):
-    #     RL = DeepQNetwork(env.n_actions, env.n_features,
-    #                       learning_rate=0.01,
-    #                       reward_decay=0.9,
-    #                       e_greedy=0.9,
-    #                       replace_target_iter=200,
-    #                       memory_size=2000,
-    #                       # output_graph=True
-    #                       )
-    # with open(save_path, 'rb') as f:
-    #     train_data = pickle.load(f)
-    #
-    # for memory in train_data:
-    #     RL.store_transition(memory[:env.n_features], memory[env.n_features], memory[env.n_features+1], memory[-env.n_features:])
-    #
-    # labels.append('preset-memory')
-    # env.after(100, run_maze)
-    # env.mainloop()
+
+    print('forth start')
+
+    env = Maze()
+
+    with tf.variable_scope('init-memory'):
+        RL = DeepQNetwork(env.n_actions, env.n_features,
+                          learning_rate=0.01,
+                          reward_decay=0.9,
+                          e_greedy=0.9,
+                          replace_target_iter=200,
+                          memory_size=2000,
+                          # output_graph=True
+                          )
+    with open(save_path, 'rb') as f:
+        train_data = pickle.load(f)
+
+    for memory in train_data:
+        RL.store_transition(memory[:env.n_features], memory[env.n_features], memory[env.n_features+1], memory[-env.n_features:])
+
+    labels.append('preset-memory')
+    env.after(100, run_maze)
+    env.mainloop()
 
 
 
@@ -187,7 +187,6 @@ if __name__ == "__main__":
     labels.append('initial-memory-proportional-replay')
     env.after(100, run_maze)
     env.mainloop()
-
 
     for i, (t, r) in enumerate(zip(to_plot_steps, to_plot_rewards)):
         plt.plot(t, r, label=labels[i])
