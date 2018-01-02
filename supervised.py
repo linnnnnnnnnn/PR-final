@@ -10,18 +10,20 @@ import matplotlib.pyplot as plt
 to_plot_steps = []
 to_plot_rewards = []
 
+max_episode = 2000
+
 
 def run_maze():
     rewards = []
     total_reward = 0
     step = 0
-    for episode in range(300):
+    for episode in range(max_episode):
         # initial observation
         observation = env.reset()
 
         while True:
             # fresh env
-            env.render()
+            # env.render()
 
             # RL choose action based on observation
             action = RL.choose_action(observation)
@@ -42,6 +44,7 @@ def run_maze():
 
             # break while loop when end of this episode
             if done:
+                print('episode {}'.format(episode))
                 break
             step += 1
 
@@ -106,11 +109,41 @@ if __name__ == "__main__":
     env.after(100, run_maze)
     env.mainloop()
 
+    print('third start')
+
+    env = Maze()
+
+    with tf.variable_scope('strong-supervised'):
+        RL = DeepQNetwork(env.n_actions, env.n_features,
+                          learning_rate=0.01,
+                          reward_decay=0.9,
+                          e_greedy=0.9,
+                          replace_target_iter=200,
+                          memory_size=2000,
+                          # output_graph=True
+                          )
+
+    with open(save_path, 'rb') as f:
+        train_data = pickle.load(f)
+
+    X = train_data[:, :env.n_features]
+    Y_ = train_data[:, env.n_features].astype(np.uint32)
+    Y = np.zeros((Y_.shape[0], env.n_actions))
+
+    Y[np.arange(Y_.shape[0]), Y_] = 1
+
+    RL.mimic_learn(X, Y)
+
+    env.after(100, run_maze)
+    env.mainloop()
+
     for i, (t, r) in enumerate(zip(to_plot_steps, to_plot_rewards)):
         if i == 0:
-            label = 'with supervised'
-        else:
+            label = 'with soft supervised'
+        elif i == 1:
             label = 'without supervised'
+        else:
+            label = 'with strong supervised'
         plt.plot(t, r, label=label)
         print('total step {}, reward {}'.format(t.shape[0], r[-1]))
     plt.xlabel('step')
