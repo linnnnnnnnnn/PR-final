@@ -35,6 +35,8 @@ if flag == 'train':
     print(env.observation_space.low)
 
     to_plot_train_steps = []
+    labels = []
+
 
     def train():
         total_steps = 0
@@ -67,6 +69,7 @@ if flag == 'train':
 
                 observation = observation_
                 total_steps += 1
+
         to_plot_train_steps.append(ep_steps)
 
 
@@ -87,6 +90,7 @@ if flag == 'train':
 
         RL.mimic_learn(X, Y)
 
+        labels.append('soft-supervised')
         train()
 
     with tf.variable_scope('no-supervised'):
@@ -94,6 +98,7 @@ if flag == 'train':
                           replace_target_iter=300, memory_size=3000,
                           e_greedy_increment=0.0002, )
 
+        labels.append('nature')
         train()
 
     with tf.variable_scope('strong-supervised'):
@@ -111,28 +116,23 @@ if flag == 'train':
         Y[np.arange(Y_.shape[0]), Y_] = 1
 
         RL.mimic_learn(X, Y)
-
+        labels.append('strong-supervised')
         train()
 
     with open(tmp_file_path, 'wb') as f:
-        pickle.dump(to_plot_train_steps, f)
+        pickle.dump((to_plot_train_steps, labels), f)
 
 else:
     import matplotlib.pyplot as plt
     import pickle
     import numpy as np
     with open(tmp_file_path, 'rb') as f:
-        to_plot_train_steps = pickle.load(f)
+        to_plot_train_steps, labels = pickle.load(f)
 
     for i, t in enumerate(to_plot_train_steps):
-        if i == 0:
-            label = 'with soft supervised'
-        elif i == 1:
-            label = 'without supervised'
-        else:
-            label = 'with strong supervised'
         e = np.arange(max_episode)
-        plt.plot(e, t, label=label)
+        plt.plot(e, t, label=labels[i])
+
     plt.xlabel('episode')
     plt.ylabel('total train step')
     plt.legend()

@@ -9,8 +9,9 @@ import matplotlib.pyplot as plt
 
 to_plot_steps = []
 to_plot_rewards = []
+labels = []
 
-max_episode = 2000
+max_episode = 300
 
 
 def run_maze():
@@ -82,12 +83,11 @@ if __name__ == "__main__":
     Y_ = train_data[:, env.n_features].astype(np.uint32)
     Y = np.zeros((Y_.shape[0], env.n_actions))
 
-
-    # Y[np.arange(Y_.shape[0]), Y_] = 1
     Y += 1. / (env.n_actions + 1)
     Y[np.arange(Y_.shape[0]), Y_] += 1. / (env.n_actions + 1)
 
     RL.mimic_learn(X, Y)
+    labels.append('with soft supervised')
 
     env.after(100, run_maze)
     env.mainloop()
@@ -106,6 +106,7 @@ if __name__ == "__main__":
                           # output_graph=True
                           )
 
+    labels.append('nature')
     env.after(100, run_maze)
     env.mainloop()
 
@@ -133,18 +134,13 @@ if __name__ == "__main__":
     Y[np.arange(Y_.shape[0]), Y_] = 1
 
     RL.mimic_learn(X, Y)
+    labels.append('with strong supervised')
 
     env.after(100, run_maze)
     env.mainloop()
 
     for i, (t, r) in enumerate(zip(to_plot_steps, to_plot_rewards)):
-        if i == 0:
-            label = 'with soft supervised'
-        elif i == 1:
-            label = 'without supervised'
-        else:
-            label = 'with strong supervised'
-        plt.plot(t, r, label=label)
+        plt.plot(t, r, label=labels[i])
         print('total step {}, reward {}'.format(t.shape[0], r[-1]))
     plt.xlabel('step')
     plt.ylabel('average reward')
