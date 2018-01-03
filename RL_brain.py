@@ -243,6 +243,7 @@ class DeepQNetworkWithPresetReplay(DeepQNetwork):
             batch_size=32,
             e_greedy_increment=None,
             output_graph=False,
+            preset_replay_base = 200
     ):
         super(DeepQNetworkWithPresetReplay, self).__init__(n_actions,
             n_features,
@@ -254,6 +255,7 @@ class DeepQNetworkWithPresetReplay(DeepQNetwork):
             batch_size,
             e_greedy_increment,
             output_graph)
+        self.preset_replay_base = preset_replay_base
 
     def preset_memory(self, preset):
         self.preset = np.zeros((len(preset), self.n_features * 2 + 2))
@@ -270,9 +272,11 @@ class DeepQNetworkWithPresetReplay(DeepQNetwork):
             print('\ntarget_params_replaced\n')
 
         # sample batch memory from all memory
-        preset_size = int(self.batch_size / np.sqrt(self.memory_counter))
+        preset_size = int(self.batch_size / np.sqrt(self.memory_counter - self.preset_replay_base))
         m_size = self.batch_size - preset_size
         batch_memory = self.preset[np.random.choice(len(self.preset), size=preset_size), :]
+        if preset_size != 0:
+            print('\npreset_size: {}; memory_counter: {}\n'.format(preset_size, self.memory_counter))
 
         if self.memory_counter > self.memory_size:
             sample_index = np.random.choice(self.memory_size, size=m_size)

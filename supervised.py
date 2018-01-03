@@ -112,10 +112,9 @@ if __name__ == "__main__":
                           )
 
     labels.append('nature')
-
     env.after(100, run_maze)
     env.mainloop()
-    #
+
     # print('third start')
     #
     # env = Maze()
@@ -149,7 +148,7 @@ if __name__ == "__main__":
 
     env = Maze()
 
-    with tf.variable_scope('init-memory'):
+    with tf.variable_scope('preset-memory'):
         RL = DeepQNetwork(env.n_actions, env.n_features,
                           learning_rate=0.01,
                           reward_decay=0.9,
@@ -172,21 +171,23 @@ if __name__ == "__main__":
 
     print('fifth start')
     env = Maze()
-    with tf.variable_scope('initial-memory-proportional-replay'):
+    with tf.variable_scope('preset-memory-with-proportional-replay-0'):
         RL = DeepQNetworkWithPresetReplay(env.n_actions, env.n_features,
                           learning_rate=0.01,
                           reward_decay=0.9,
                           e_greedy=0.9,
                           replace_target_iter=200,
                           memory_size=2000,
+                          preset_replay_base=0
                           # output_graph=True
                           )
     with open(save_path, 'rb') as f:
         train_data = pickle.load(f)
     RL.preset_memory(train_data)
-    labels.append('initial-memory-proportional-replay')
+    labels.append('preset-memory-with-proportional-replay-0')
     env.after(100, run_maze)
     env.mainloop()
+
 
     for i, (t, r) in enumerate(zip(to_plot_steps, to_plot_rewards)):
         plt.plot(t, r, label=labels[i])

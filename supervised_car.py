@@ -5,7 +5,7 @@ Using:
 Tensorflow: 1.0
 gym: 0.8.0
 """
-# flag = 'train'
+#flag = 'train'
 flag = 'p'
 
 tmp_file_path = 'tmp/car.pickle'
@@ -18,6 +18,7 @@ n_feature = 2
 if flag == 'train':
     import gym
     from RL_brain import DeepQNetwork
+    from RL_brain import DeepQNetworkWithPresetReplay
     import matplotlib.pyplot as plt
     import numpy as np
     import pickle
@@ -131,6 +132,39 @@ if flag == 'train':
             RL.store_transition(memory[:n_feature], memory[n_feature], memory[n_feature + 1],
                                 memory[-n_feature:])
         labels.append('memory-preset')
+        train()
+
+    with tf.variable_scope('memory-preset-with-proportional-replay-0'):
+        RL = DeepQNetworkWithPresetReplay(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
+                                          replace_target_iter=300, memory_size=3000,
+                                          e_greedy_increment=0.0002, preset_replay_base=0)
+        with open(save_path, 'rb') as f:
+            train_data = pickle.load(f)
+        RL.preset_memory(train_data)
+
+        labels.append('memory-preset-with-proportional-replay-0')
+        train()
+
+    with tf.variable_scope('memory-preset-with-proportional-replay-200'):
+        RL = DeepQNetworkWithPresetReplay(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
+                                          replace_target_iter=300, memory_size=3000,
+                                          e_greedy_increment=0.0002)
+        with open(save_path, 'rb') as f:
+            train_data = pickle.load(f)
+        RL.preset_memory(train_data)
+
+        labels.append('memory-preset-with-proportional-replay-200')
+        train()
+
+    with tf.variable_scope('memory-preset-with-proportional-replay-1000'):
+        RL = DeepQNetworkWithPresetReplay(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
+                                          replace_target_iter=300, memory_size=3000,
+                                          e_greedy_increment=0.0002)
+        with open(save_path, 'rb') as f:
+            train_data = pickle.load(f)
+        RL.preset_memory(train_data)
+
+        labels.append('memory-preset-with-proportional-replay-1000')
         train()
 
     with open(tmp_file_path, 'wb') as f:
