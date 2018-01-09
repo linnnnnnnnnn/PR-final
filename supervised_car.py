@@ -5,13 +5,14 @@ Using:
 Tensorflow: 1.0
 gym: 0.8.0
 """
-#flag = 'train'
+
+# flag = 'train'
 flag = 'p'
 
 tmp_file_path = 'tmp/car.pickle'
 save_path = 'models/mimic_car.pickle'
 
-max_episode = 20
+max_episode = 40
 n_action = 3
 n_feature = 2
 
@@ -121,7 +122,61 @@ if flag == 'train':
         labels.append('strong-supervised')
         train()
 
-    with tf.variable_scope('memory-preset'):
+
+
+    # with tf.variable_scope('memory-preset-v2'):
+    #     RL = DeepQNetwork(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
+    #                       replace_target_iter=300, memory_size=3000,
+    #                       e_greedy_increment=0.0002, )
+    #     with open(save_path, 'rb') as f:
+    #         train_data = pickle.load(f)
+    #
+    #     while True:
+    #         index = RL.memory_counter if hasattr(RL, 'memory_counter') else 0
+    #         if index == RL.memory_size:
+    #             break
+    #         index = index % len(train_data)
+    #         RL.store_transition(train_data[index, :n_feature], train_data[index, n_feature],
+    #                             train_data[index, n_feature + 1], train_data[index, -n_feature:])
+    #
+    #     labels.append('memory-preset-v2')
+    #     train()
+
+
+    # with tf.variable_scope('memory-preset-with-proportional-replay-0'):
+    #     RL = DeepQNetworkWithPresetReplay(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
+    #                                       replace_target_iter=300, memory_size=3000,
+    #                                       e_greedy_increment=0.0002, preset_replay_base=0)
+    #     with open(save_path, 'rb') as f:
+    #         train_data = pickle.load(f)
+    #     RL.preset_memory(train_data)
+    #
+    #     labels.append('memory-preset-with-proportional-replay-0')
+    #     train()
+    #
+    # with tf.variable_scope('memory-preset-with-proportional-replay-200'):
+    #     RL = DeepQNetworkWithPresetReplay(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
+    #                                       replace_target_iter=300, memory_size=3000,
+    #                                       e_greedy_increment=0.0002)
+    #     with open(save_path, 'rb') as f:
+    #         train_data = pickle.load(f)
+    #     RL.preset_memory(train_data)
+    #
+    #     labels.append('memory-preset-with-proportional-replay-200')
+    #     train()
+    #
+    with tf.variable_scope('prior-memory'):
+        RL = DeepQNetworkWithPresetReplay(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
+                                          replace_target_iter=300, memory_size=3000,
+                                          e_greedy_increment=0.0002)
+        with open(save_path, 'rb') as f:
+            train_data = pickle.load(f)
+        RL.preset_memory(train_data)
+
+        labels.append('prior-memory')
+        train()
+
+    with tf.variable_scope('static-memory-preset'):
         RL = DeepQNetwork(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
                           replace_target_iter=300, memory_size=3000,
                           e_greedy_increment=0.0002, )
@@ -131,41 +186,10 @@ if flag == 'train':
         for memory in train_data:
             RL.store_transition(memory[:n_feature], memory[n_feature], memory[n_feature + 1],
                                 memory[-n_feature:])
-        labels.append('memory-preset')
+        labels.append('static-memory-preset')
         train()
 
-    with tf.variable_scope('memory-preset-with-proportional-replay-0'):
-        RL = DeepQNetworkWithPresetReplay(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
-                                          replace_target_iter=300, memory_size=3000,
-                                          e_greedy_increment=0.0002, preset_replay_base=0)
-        with open(save_path, 'rb') as f:
-            train_data = pickle.load(f)
-        RL.preset_memory(train_data)
 
-        labels.append('memory-preset-with-proportional-replay-0')
-        train()
-
-    with tf.variable_scope('memory-preset-with-proportional-replay-200'):
-        RL = DeepQNetworkWithPresetReplay(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
-                                          replace_target_iter=300, memory_size=3000,
-                                          e_greedy_increment=0.0002)
-        with open(save_path, 'rb') as f:
-            train_data = pickle.load(f)
-        RL.preset_memory(train_data)
-
-        labels.append('memory-preset-with-proportional-replay-200')
-        train()
-
-    with tf.variable_scope('memory-preset-with-proportional-replay-1000'):
-        RL = DeepQNetworkWithPresetReplay(n_actions=3, n_features=2, learning_rate=0.001, e_greedy=0.9,
-                                          replace_target_iter=300, memory_size=3000,
-                                          e_greedy_increment=0.0002)
-        with open(save_path, 'rb') as f:
-            train_data = pickle.load(f)
-        RL.preset_memory(train_data)
-
-        labels.append('memory-preset-with-proportional-replay-1000')
-        train()
 
     with open(tmp_file_path, 'wb') as f:
         pickle.dump((to_plot_train_steps, labels), f)
@@ -177,15 +201,41 @@ else:
     with open(tmp_file_path, 'rb') as f:
         to_plot_train_steps, labels = pickle.load(f)
 
-    for i, t in enumerate(to_plot_train_steps):
-        e = np.arange(max_episode)
-        plt.plot(e, t, label=labels[i])
+    # for i, t in enumerate(to_plot_train_steps):
+    #     e = np.arange(max_episode)
+    #     plt.plot(e, t, label=labels[i])
+    #
+    # plt.xlabel('episode')
+    # plt.ylabel('total train step')
+    # plt.legend()
+    # plt.grid()
+    # plt.show()
 
-    plt.xlabel('episode')
-    plt.ylabel('total train step')
-    plt.legend()
-    plt.grid()
-    plt.show()
+    to_plots = [
+        ['soft-supervised', 'nature'],
+        ['strong-supervised', 'nature'],
+        ['strong-supervised', 'soft-supervised', 'nature'],
+        ['nature', 'static-memory-preset'],
+        ['nature', 'prior-memory'],
+        ['nature', 'static-memory-preset', 'prior-memory'],
+        ['strong-supervised', 'soft-supervised', 'nature', 'static-memory-preset', 'prior-memory']
+    ]
+
+
+    def plotttt(lbs):
+        plt.figure()
+        for lb in lbs:
+            idx = labels.index(lb)
+            plt.plot(np.arange(max_episode), to_plot_train_steps[idx], label=lb)
+        plt.xlabel('episode')
+        plt.ylabel('total train step')
+        plt.legend()
+        plt.grid()
+        plt.show()
+
+
+    for to_plot in to_plots:
+        plotttt(to_plot)
 
 
 

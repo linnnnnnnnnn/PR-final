@@ -14,8 +14,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-np.random.seed(1)
-tf.set_random_seed(1)
+# np.random.seed(1)
+# tf.set_random_seed(1)
 
 
 # Deep Q Network off-policy
@@ -256,6 +256,7 @@ class DeepQNetworkWithPresetReplay(DeepQNetwork):
             e_greedy_increment,
             output_graph)
         self.preset_replay_base = preset_replay_base
+        self.preset = None
 
     def preset_memory(self, preset):
         self.preset = np.zeros((len(preset), self.n_features * 2 + 2))
