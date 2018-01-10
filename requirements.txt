@@ -1,1 +1,4 @@
 pynput
+tensorflow
+gym
+numpy
